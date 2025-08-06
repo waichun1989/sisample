@@ -1,0 +1,35 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.boot.context.config: DEBUG
+
+server:
+  port: 8085
+
+integration:
+  flow:
+    - from: httpInboundChannel
+      to: enricherInput
+    - from: enricherOutput
+      to: transformerInput
+    - from: transformerOutput
+      to: inboxInput
+    - from: inboxOutput
+      to: httpOutboundInput
+    - from: httpOutboundOutput
+      to: serviceInput1
+    - from: serviceOutput1
+      to: aggregatorInput
+    - from: aggregatorOutput
+      to: httpReplyChannel
+  service-activators:
+    - input: serviceInput1
+      output: serviceOutput1
+      bean: myService
+      method: process
+      args:
+        - expression: "#root"  # pass entire message payload
+        - expression: "#headers['X-Request-ID']"
+  aggregator:
+    input: aggregatorInput
+    output: aggregatorOutput
