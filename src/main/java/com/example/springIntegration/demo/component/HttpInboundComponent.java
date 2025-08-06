@@ -17,11 +17,16 @@ public class HttpInboundComponent {
     }
 
     @Bean
-    public IntegrationFlow httpInboundFlow() {
-        return IntegrationFlow
-                .from(Http.inboundGateway("/receive")
-                        .requestPayloadType(String.class))
-                .channel(httpInboundChannel())
-                .get();
+    public MessageChannel responseChannel() {
+        return new DirectChannel();
     }
+
+//    @Bean
+//    public IntegrationFlow httpInboundFlow() {
+//        return IntegrationFlow
+//                .from(Http.inboundGateway("/receive")
+//                        .requestPayloadType(String.class))
+//                .channel(httpInboundChannel())
+//                .get();
+//    }
 }

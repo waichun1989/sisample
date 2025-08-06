@@ -4,13 +4,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MyService {
-
-    public String process(Object input) {
-        System.out.println("Processed: " + input);
-        return "Done";
-    }
-
-    public String enrich(String name, String requestId) {
-        return "Enriched " + name + " with ID " + requestId;
+    public String print(String name, String email) {
+        return "Enriched " + name + " with email " + email;
     }
 }

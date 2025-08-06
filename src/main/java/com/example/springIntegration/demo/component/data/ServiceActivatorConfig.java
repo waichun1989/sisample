@@ -6,8 +6,6 @@ import java.util.List;
 
 @Data
 public class ServiceActivatorConfig {
-    private String input;
-    private String output;
     private String bean;
     private String method;
     private List<ServiceActivatorArg> args;

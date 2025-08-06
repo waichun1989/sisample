@@ -24,7 +24,7 @@ public class EnricherComponent {
     public IntegrationFlow enricherFlow() {
         return IntegrationFlow
                 .from(enricherInput())
-                .enrich(e -> e.property("headers.enriched", "true"))
+                .enrich(e -> e.property("enriched", "true"))
                 .channel(enricherOutput())
                 .get();
     }

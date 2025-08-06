@@ -5,6 +5,6 @@ import org.springframework.integration.annotation.MessagingGateway;
 
 @MessagingGateway
 public interface CustomerGateway {
-    @Gateway(requestChannel = "httpInboundChannel", replyTimeout = 10_000)
+    @Gateway(requestChannel = "httpInboundChannel", replyChannel = "responseChannel", replyTimeout = 10_000)
     Object onboard(Object customer);
 }

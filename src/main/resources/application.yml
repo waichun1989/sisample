@@ -2,6 +2,15 @@ logging:
   level:
     root: INFO
     org.springframework.boot.context.config: DEBUG
+    org.springframework.integration: DEBUG
+    org.springframework.messaging: DEBUG
+    org.springframework.integration.channel: TRACE
+    org.springframework.integration.handler: TRACE
+    org.springframework.integration.endpoint: TRACE
+    org.springframework.integration.router: TRACE
+    org.springframework.integration.transformer: TRACE
+    org.springframework.integration.gateway: TRACE
+    org.springframework.integration.dispatcher: TRACE
 
 server:
   port: 8085
@@ -10,26 +19,30 @@ integration:
   flow:
     - from: httpInboundChannel
       to: enricherInput
+#    - from: enricherOutput
+#      to: transformerInput
+#    - from: transformerOutput
+#      to: inboxInput
+#    - from: inboxOutput
+#      to: httpOutboundInput
+#    - from: httpOutboundOutput
+#      to: serviceInput1
+#    - from: serviceOutput1
+#      to: responseChannel
+#    - from: aggregatorOutput
+#      to: responseChannel
     - from: enricherOutput
-      to: transformerInput
-    - from: transformerOutput
       to: inboxInput
     - from: inboxOutput
-      to: httpOutboundInput
-    - from: httpOutboundOutput
       to: serviceInput1
     - from: serviceOutput1
-      to: aggregatorInput
-    - from: aggregatorOutput
-      to: httpReplyChannel
+      to: responseChannel
   service-activators:
-    - input: serviceInput1
-      output: serviceOutput1
-      bean: myService
-      method: process
+    - bean: myService
+      method: print
       args:
-        - expression: "#root"  # pass entire message payload
-        - expression: "#headers['X-Request-ID']"
+        - expression: "#root['name']"
+        - expression: "#root['email']"
   aggregator:
     input: aggregatorInput
     output: aggregatorOutput

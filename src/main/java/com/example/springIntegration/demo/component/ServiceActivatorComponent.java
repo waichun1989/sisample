@@ -6,8 +6,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
-import org.springframework.integration.core.GenericHandler;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.ReflectionUtils;
@@ -32,16 +33,21 @@ public class ServiceActivatorComponent {
     }
 
     @Bean
-    public List<IntegrationFlow> dynamicServiceActivators() {
-        return configProperties.getServiceActivators().stream()
-                .map(this::buildFlow)
-                .toList();
+    public MessageChannel serviceInput1() {
+        return new DirectChannel();
     }
 
-    private IntegrationFlow buildFlow(ServiceActivatorConfig config) {
+    @Bean
+    public MessageChannel serviceOutput1() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public IntegrationFlow serviceActivator(FlowConfig flowConfig) {
+        ServiceActivatorConfig config = flowConfig.getServiceActivators().get(0);
         return IntegrationFlow
-                .from(context.getBean(config.getInput(), MessageChannel.class))
-                .handle((GenericHandler<Message<?>>) (message, headers) -> {
+                .from(serviceInput1())
+                .handle((payload, headers) -> {
                     Object bean = context.getBean(config.getBean());
                     Method method = Arrays.stream(bean.getClass().getMethods())
                             .filter(m -> m.getName().equals(config.getMethod()))
@@ -51,34 +57,19 @@ public class ServiceActivatorComponent {
                     List<Object> args = Optional.ofNullable(config.getArgs())
                             .orElse(List.of())
                             .stream()
-                            .map(arg -> parser.parseExpression(arg.getExpression()).getValue(new RootObject(message)))
+                            .map(arg -> parser.parseExpression(arg.getExpression()).getValue(payload))
                             .toList();
 
                     Object result = ReflectionUtils.invokeMethod(method, bean, args.toArray());
 
-                    return Map.of("source", "service", "data", result);
+                    return MessageBuilder.withPayload(
+                                    Map.of("source", "service",
+                                            "payload", payload,
+                                            "data", result))
+                            .copyHeaders(headers)
+                            .build();
                 })
-                .channel(context.getBean(config.getOutput(), MessageChannel.class))
+                .channel(serviceOutput1())
                 .get();
-    }
-
-    static class RootObject {
-        private final Message<?> message;
-
-        public RootObject(Message<?> message) {
-            this.message = message;
-        }
-
-        public Object getPayload() {
-            return message.getPayload();
-        }
-
-        public Map<String, Object> getHeaders() {
-            return message.getHeaders();
-        }
-
-        public Message<?> getMessage() {
-            return message;
-        }
     }
 }

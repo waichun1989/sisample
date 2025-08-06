@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.http.dsl.Http;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.MessageChannel;
 
 import java.util.Map;
@@ -16,6 +17,11 @@ public class HttpOutboundComponent {
 
     @Bean
     public MessageChannel httpOutboundInput() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageChannel httpOutboundOutput() {
         return new DirectChannel();
     }
 
@@ -39,12 +45,19 @@ public class HttpOutboundComponent {
                         System.out.println("Headers: " + response.getHeaders());
                         System.out.println("Body: " + response.getBody());
 
-                        return Map.of("source", "http", "data", response);
+//                        return MessageBuilder.withPayload(Map.of(
+//                                        "source", "http",
+//                                        "data", response,
+//                                        "previousBody", payload))
+//                                .copyHeaders(headers)
+//                                .build();
+                        return payload;
                     }
 
                     // Fallback
                     return Map.of("source", "http", "data", payload);
                 })
+                .channel(httpOutboundOutput())
                 .get();
     }
 }
