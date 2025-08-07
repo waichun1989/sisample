@@ -36,6 +36,8 @@ integration:
     - from: inboxOutput
       to: serviceInput1
     - from: serviceOutput1
+      to: serviceInput2
+    - from: serviceOutput2
       to: responseChannel
   service-activators:
     - bean: myService
@@ -43,6 +45,11 @@ integration:
       args:
         - expression: "#root['name']"
         - expression: "#root['email']"
+    - bean: myService
+      method: print2
+      args:
+        - expression: "#root['data']"
+        - expression: "#root['source']"
   aggregator:
     input: aggregatorInput
     output: aggregatorOutput
